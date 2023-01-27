@@ -59,7 +59,7 @@ jobs:
 
     # Apply the configured Terraform plan
     - name: Apply Terraform
-      if: github.event.client_payload.terraform_destroy == 'false'
+      if: github.event.client_payload.terraform_destroy == false
       run: |
         terraform -chdir=./terraform/apm apply \
           -auto-approve \
@@ -70,7 +70,7 @@ jobs:
 
     # Destroy the existing Terraform deployment
     - name: Destroy Terraform
-      if: github.event.client_payload.terraform_destroy == 'true'
+      if: github.event.client_payload.terraform_destroy == true
       run: |
         terraform -chdir=./terraform/apm destroy \
           -auto-approve \
