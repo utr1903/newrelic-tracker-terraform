@@ -13,6 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     # environment: production
 
+    env:
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
@@ -29,15 +35,15 @@ jobs:
       uses: hashicorp/setup-terraform@v1
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform init
+    - name: Initialize Terraform
       run: terraform -chdir=./terraform/apm init
 
     # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform format
+    - name: Format Terraform
       run: terraform -chdir=./terraform/apm fmt -check
 
     # Generates an execution plan for Terraform
-    - name: Terraform plan
+    - name: Plan Terraform
       run: |
         terraform -chdir=./terraform/apm plan \
           -var NEW_RELIC_ACCOUNT_ID=${{ github.event.client_payload.newrelic_account_id }} \
@@ -48,6 +54,6 @@ jobs:
 
     # On push to "main", build or change infrastructure according to Terraform configuration files
     # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
-    # - name: Terraform apply
+    # - name: Apply Terraform
     #  if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
     #  run: terraform apply -auto-approve -input=false
