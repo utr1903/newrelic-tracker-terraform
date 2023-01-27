@@ -90,7 +90,7 @@ if [[ $servicePrincipal == "null" ]]; then
   az ad sp create-for-rbac \
     --name $servicePrincipalName \
     --role "contributor" \
-    --scopes "/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupName}/providers/Microsoft.Storage/storageAccounts/${storageAccountName}/blobServices/default/containers/${blobContainerName}"
+    --scopes "/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupName}/providers/Microsoft.Storage/storageAccounts/${storageAccountName}"
   echo -e " -> Service principal is created successfully.\n"
 else
   echo -e " -> Service principal already exists.\n"
