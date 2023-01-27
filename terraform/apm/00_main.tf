@@ -4,11 +4,27 @@
 
 terraform {
   required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~>3.41.0"
+    }
     newrelic = {
       source  = "newrelic/newrelic"
       version = "~>3.11.0"
     }
   }
+
+  backend "azurerm" {
+    resource_group_name  = "rgtrackereuwterraform"
+    storage_account_name = "sttrackereuwterraform"
+    container_name       = "tfstates"
+    key                  = "${var.NEW_RELIC_ACCOUNT_ID}-apm-${var.app_name}.tfstate"
+  }
+}
+
+# Configure the Azure Provider
+provider "azurerm" {
+  
 }
 
 # Configure the NR Provider
