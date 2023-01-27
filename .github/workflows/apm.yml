@@ -43,11 +43,11 @@ jobs:
         -backend-config="container_name=tfstates" \
         -backend-config="key=${{ github.event.client_payload.newrelic_account_id }}-apm-${{ github.event.client_payload.app_name }}"
 
-    # Checks that all Terraform configuration files adhere to a canonical format
+    # Check that all Terraform configuration files adhere to a canonical format
     - name: Format Terraform
       run: terraform -chdir=./terraform/apm fmt -check
 
-    # Generates an execution plan for Terraform
+    # Generate an execution plan for Terraform
     - name: Plan Terraform
       run: |
         terraform -chdir=./terraform/apm plan \
@@ -57,8 +57,24 @@ jobs:
           -var app_name=${{ github.event.client_payload.app_name }} \
           -out "./tfplan"
 
-    # On push to "main", build or change infrastructure according to Terraform configuration files
-    # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
-    # - name: Apply Terraform
-    #  if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
-    #  run: terraform apply -auto-approve -input=false
+    # Apply the configured Terraform plan
+    - name: Apply Terraform
+      if: github.event.client_payload.terraform_destroy == 'false'
+      run: |
+        terraform -chdir=./terraform/apm apply \
+          -auto-approve \
+          -var NEW_RELIC_ACCOUNT_ID=${{ github.event.client_payload.newrelic_account_id }} \
+          -var NEW_RELIC_API_KEY=${{ github.event.client_payload.newrelic_api_key }} \
+          -var NEW_RELIC_REGION=${{ github.event.client_payload.newrelic_region }} \
+          -var app_name=${{ github.event.client_payload.app_name }} \
+
+    # Destroy the existing Terraform deployment
+    - name: Destroy Terraform
+      if: github.event.client_payload.terraform_destroy == 'true'
+      run: |
+        terraform -chdir=./terraform/apm destroy \
+          -auto-approve \
+          -var NEW_RELIC_ACCOUNT_ID=${{ github.event.client_payload.newrelic_account_id }} \
+          -var NEW_RELIC_API_KEY=${{ github.event.client_payload.newrelic_api_key }} \
+          -var NEW_RELIC_REGION=${{ github.event.client_payload.newrelic_region }} \
+          -var app_name=${{ github.event.client_payload.app_name }} \
