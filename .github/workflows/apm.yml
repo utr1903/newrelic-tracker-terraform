@@ -36,7 +36,12 @@ jobs:
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Initialize Terraform
-      run: terraform -chdir=./terraform/apm init
+      run: |
+        terraform -chdir=./terraform/apm init \
+        -backend-config="resource_group_name=rgtrackereuwterraform" \
+        -backend-config="storage_account_name=sttrackereuwterraform" \
+        -backend-config="container_name=tfstates" \
+        -backend-config="key=${{ github.event.client_payload.newrelic_account_id }}-apm-${{ github.event.client_payload.app_name }}"
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Format Terraform

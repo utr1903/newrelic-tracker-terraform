@@ -14,18 +14,11 @@ terraform {
     }
   }
 
-  backend "azurerm" {
-    resource_group_name  = "rgtrackereuwterraform"
-    storage_account_name = "sttrackereuwterraform"
-    container_name       = "tfstates"
-    key                  = "${var.NEW_RELIC_ACCOUNT_ID}-apm-${var.app_name}.tfstate"
-  }
+  backend "azurerm" {}
 }
 
 # Configure the Azure Provider
-provider "azurerm" {
-  
-}
+provider "azurerm" {}
 
 # Configure the NR Provider
 provider "newrelic" {
