@@ -30,16 +30,16 @@ jobs:
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform init
-      run: terraform -chdir=../terraform init
+      run: terraform -chdir=./terraform/apm init
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform format
-      run: terraform -chdir=../terraform fmt -check
+      run: terraform -chdir=./terraform/apm fmt -check
 
     # Generates an execution plan for Terraform
     - name: Terraform plan
       run: |
-        terraform -chdir=../terraform plan \
+        terraform -chdir=./terraform/apm plan \
           -var NEW_RELIC_ACCOUNT_ID=${{ github.event.client_payload.newrelic_account_id }} \
           -var NEW_RELIC_API_KEY=${{ github.event.client_payload.newrelic_api_key }} \
           -var NEW_RELIC_REGION=${{ github.event.client_payload.newrelic_region }} \
