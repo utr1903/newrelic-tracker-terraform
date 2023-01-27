@@ -1,8 +1,24 @@
 name: 'Terraform APM'
 
 on:
-  repository_dispatch:
-    types: [apm]
+  workflow_call:
+    inputs:
+      newrelic_account_id:
+        required: true
+        type: string
+      newrelic_api_key:
+        required: true
+        type: string
+      newrelic_region:
+        required: true
+        type: string
+      app_name:
+        required: true
+        type: string
+      terraform_destroy:
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -41,7 +57,7 @@ jobs:
         -backend-config="resource_group_name=rgtrackereuwterraform" \
         -backend-config="storage_account_name=sttrackereuwterraform" \
         -backend-config="container_name=tfstates" \
-        -backend-config="key=${{ github.event.client_payload.newrelic_account_id }}-apm-${{ github.event.client_payload.app_name }}"
+        -backend-config="key=${{ inputs.newrelic_account_id }}-apm-${{ inputs.app_name }}"
 
     # Check that all Terraform configuration files adhere to a canonical format
     - name: Format Terraform
@@ -51,30 +67,30 @@ jobs:
     - name: Plan Terraform
       run: |
         terraform -chdir=./terraform/apm plan \
-          -var NEW_RELIC_ACCOUNT_ID=${{ github.event.client_payload.newrelic_account_id }} \
-          -var NEW_RELIC_API_KEY=${{ github.event.client_payload.newrelic_api_key }} \
-          -var NEW_RELIC_REGION=${{ github.event.client_payload.newrelic_region }} \
-          -var app_name=${{ github.event.client_payload.app_name }} \
+          -var NEW_RELIC_ACCOUNT_ID=${{ inputs.newrelic_account_id }} \
+          -var NEW_RELIC_API_KEY=${{ inputs.newrelic_api_key }} \
+          -var NEW_RELIC_REGION=${{ inputs.newrelic_region }} \
+          -var app_name=${{ inputs.app_name }} \
           -out "./tfplan"
 
     # Apply the configured Terraform plan
     - name: Apply Terraform
-      if: github.event.client_payload.terraform_destroy == false
+      if: inputs.terraform_destroy == false
       run: |
         terraform -chdir=./terraform/apm apply \
           -auto-approve \
-          -var NEW_RELIC_ACCOUNT_ID=${{ github.event.client_payload.newrelic_account_id }} \
-          -var NEW_RELIC_API_KEY=${{ github.event.client_payload.newrelic_api_key }} \
-          -var NEW_RELIC_REGION=${{ github.event.client_payload.newrelic_region }} \
-          -var app_name=${{ github.event.client_payload.app_name }} \
+          -var NEW_RELIC_ACCOUNT_ID=${{ inputs.newrelic_account_id }} \
+          -var NEW_RELIC_API_KEY=${{ inputs.newrelic_api_key }} \
+          -var NEW_RELIC_REGION=${{ inputs.newrelic_region }} \
+          -var app_name=${{ inputs.app_name }} \
 
     # Destroy the existing Terraform deployment
     - name: Destroy Terraform
-      if: github.event.client_payload.terraform_destroy == true
+      if: inputs.terraform_destroy == true
       run: |
         terraform -chdir=./terraform/apm destroy \
           -auto-approve \
-          -var NEW_RELIC_ACCOUNT_ID=${{ github.event.client_payload.newrelic_account_id }} \
-          -var NEW_RELIC_API_KEY=${{ github.event.client_payload.newrelic_api_key }} \
-          -var NEW_RELIC_REGION=${{ github.event.client_payload.newrelic_region }} \
-          -var app_name=${{ github.event.client_payload.app_name }} \
+          -var NEW_RELIC_ACCOUNT_ID=${{ inputs.newrelic_account_id }} \
+          -var NEW_RELIC_API_KEY=${{ inputs.newrelic_api_key }} \
+          -var NEW_RELIC_REGION=${{ inputs.newrelic_region }} \
+          -var app_name=${{ inputs.app_name }} \
