@@ -11,7 +11,7 @@ jobs:
 
   # Run the APM workflow
   apm:
-    if: github.event.event_type == 'apm'
+    if: github.event.action == 'apm'
     name: APM
     uses: ./.github/workflows/apm.yml
     with:
@@ -28,7 +28,7 @@ jobs:
 
   # Run the K8s workflow
   k8s:
-    if: github.event.event_type == 'k8s'
+    if: github.event.action == 'k8s'
     name: K8s
     uses: ./.github/workflows/k8s.yml
     with:
