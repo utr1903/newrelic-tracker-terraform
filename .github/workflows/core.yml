@@ -2,12 +2,28 @@ name: 'Terraform Core'
 
 on:
   repository_dispatch:
-    types: [apm, k8s]
+    types: [ingest, apm, k8s]
 
 permissions:
   contents: read
 
 jobs:
+
+  # Run the data ingest workflow
+  ingest:
+    if: github.event.action == 'ingest'
+    name: Data Ingest
+    uses: ./.github/workflows/ingest.yml
+    with:
+      newrelic_account_id: ${{ github.event.client_payload.newrelic_account_id }}
+      newrelic_api_key: ${{ github.event.client_payload.newrelic_api_key }}
+      newrelic_region: ${{ github.event.client_payload.newrelic_region }}
+      terraform_destroy: ${{ github.event.client_payload.terraform_destroy }}
+    secrets:
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
 
   # Run the APM workflow
   apm:
