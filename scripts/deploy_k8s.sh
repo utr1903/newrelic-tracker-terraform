@@ -59,20 +59,14 @@ fi
 if [[ $flagDestroy != "true" ]]; then
 
   # Initialize Terraform
-  terraform -chdir=../terraform init
-
-  # Check if workspace exists
-  workspaceExists=$(terraform -chdir=../terraform workspace list \
-    | grep -w "$cluster")
-  
-  if [[ $workspaceExists = "" ]]; then
-    terraform -chdir=../terraform workspace new "$cluster"
-  else
-    terraform -chdir=../terraform workspace select "$cluster"
-  fi
+  terraform -chdir=../terraform/k8s init \
+    -backend-config="resource_group_name=rgtrackereuwterraform" \
+    -backend-config="storage_account_name=sttrackereuwterraform" \
+    -backend-config="container_name=tfstates" \
+    -backend-config="key=${NEWRELIC_ACCOUNT_ID}-k8s-${cluster}-local"
 
   # Plan Terraform
-  terraform -chdir=../terraform plan \
+  terraform -chdir=../terraform/k8s plan \
     -var NEW_RELIC_ACCOUNT_ID=$NEWRELIC_ACCOUNT_ID \
     -var NEW_RELIC_API_KEY=$NEWRELIC_API_KEY \
     -var NEW_RELIC_REGION=$NEWRELIC_REGION \
@@ -81,30 +75,15 @@ if [[ $flagDestroy != "true" ]]; then
 
   # Apply Terraform
   if [[ $flagDryRun != "true" ]]; then
-    terraform -chdir=../terraform apply tfplan
+    terraform -chdir=../terraform/k8s apply tfplan
   fi
 else
 
-  # Check if workspace exists
-  workspaceExists=$(terraform -chdir=../terraform workspace list \
-    | grep -w "$cluster")
-  
-  if [[ $workspaceExists = "" ]]; then
-    echo "Workspace for $cluster does not exist!"
-    exit 1
-  else
-    terraform -chdir=../terraform workspace select "$cluster"
-  fi
-
   # Destroy Terraform
-  terraform -chdir=../terraform destroy \
+  terraform -chdir=../terraform/k8s destroy \
     -var NEW_RELIC_ACCOUNT_ID=$NEWRELIC_ACCOUNT_ID \
     -var NEW_RELIC_API_KEY=$NEWRELIC_API_KEY \
     -var NEW_RELIC_REGION=$NEWRELIC_REGION \
     -var cluster_name=$cluster
-
-  # Remove workspace
-  terraform -chdir=../terraform workspace select "default"
-  terraform -chdir=../terraform workspace delete "$cluster"
 fi
 #########

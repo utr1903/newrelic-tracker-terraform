@@ -63,17 +63,7 @@ if [[ $flagDestroy != "true" ]]; then
     -backend-config="resource_group_name=rgtrackereuwterraform" \
     -backend-config="storage_account_name=sttrackereuwterraform" \
     -backend-config="container_name=tfstates" \
-    -backend-config="key=${NEWRELIC_ACCOUNT_ID}-apm-${appName}"
-
-  # Check if workspace exists
-  workspaceExists=$(terraform -chdir=../terraform/apm workspace list \
-    | grep -w "$appName")
-  
-  if [[ $workspaceExists = "" ]]; then
-    terraform -chdir=../terraform/apm workspace new "$appName"
-  else
-    terraform -chdir=../terraform/apm workspace select "$appName"
-  fi
+    -backend-config="key=${NEWRELIC_ACCOUNT_ID}-apm-${appName}-local"
 
   # Plan Terraform
   terraform -chdir=../terraform/apm plan \
@@ -89,26 +79,11 @@ if [[ $flagDestroy != "true" ]]; then
   fi
 else
 
-  # Check if workspace exists
-  workspaceExists=$(terraform -chdir=../terraform/apm workspace list \
-    | grep -w "$appName")
-  
-  if [[ $workspaceExists = "" ]]; then
-    echo "Workspace for $appName does not exist!"
-    exit 1
-  else
-    terraform -chdir=../terraform/apm workspace select "$appName"
-  fi
-
   # Destroy Terraform
   terraform -chdir=../terraform/apm destroy \
     -var NEW_RELIC_ACCOUNT_ID=$NEWRELIC_ACCOUNT_ID \
     -var NEW_RELIC_API_KEY=$NEWRELIC_API_KEY \
     -var NEW_RELIC_REGION=$NEWRELIC_REGION \
     -var app_name=$appName
-
-  # Remove workspace
-  terraform -chdir=../terraform/apm workspace select "default"
-  terraform -chdir=../terraform/apm workspace delete "$appName"
 fi
 #########
