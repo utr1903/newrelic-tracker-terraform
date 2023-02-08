@@ -206,7 +206,7 @@ resource "newrelic_one_dashboard" "app" {
       height = 3
       width  = 3
 
-      text = "## Transactions"
+      text = "## Transactions\nThis page is dedicated for the transactions which are tracked and sent to New Relic. In cases of high throughput, the agent starts dropping and not tracking all transactions. Therefore, this view is not exactly appropriate to make a judgement about the overall application performance but to investigate a portion of detailed traces."
     }
 
     # Overview
@@ -299,8 +299,8 @@ resource "newrelic_one_dashboard" "app" {
       title  = "Transaction count by URI"
       row    = 10
       column = 9
-      height = 4
-      width  = 3
+      height = 3
+      width  = 4
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
