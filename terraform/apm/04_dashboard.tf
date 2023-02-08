@@ -206,7 +206,7 @@ resource "newrelic_one_dashboard" "app" {
       height = 3
       width  = 3
 
-      text = "## Transactions\nThis page is dedicated for the transactions which are tracked and sent to New Relic. In cases of high throughput, the agent starts dropping and not tracking all transactions. Therefore, this view is not exactly appropriate to make a judgement about the overall application performance but to investigate a portion of detailed traces."
+      text = "## Transactions\n\nThis page is dedicated for the transactions which are tracked and sent to New Relic. In cases of high throughput, the agent starts dropping and not tracking all transactions.\n\nTherefore, this view is not exactly appropriate to make a judgement about the overall application performance but to investigate a portion of detailed traces."
     }
 
     # Overview
