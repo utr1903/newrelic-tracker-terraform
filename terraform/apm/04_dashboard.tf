@@ -308,4 +308,162 @@ resource "newrelic_one_dashboard" "app" {
       }
     }
   }
+
+  ############################
+  ### RESOURCE CONSUMPTION ###
+  ############################
+  page {
+    name = "Resource consumption"
+
+    # Page description
+    widget_markdown {
+      title  = "Page description"
+      row    = 1
+      column = 1
+      height = 2
+      width  = 4
+
+      text = "## Resource Consumption\nThis page is dedicated to give an overview of the resource (CPU/MEM) consumption of the application.\n\nFor better understanding, it is highly recommended to retrieve the consumption data per infrastructure agent or Prometheus etc."
+    }
+
+    # CPU utilization (%)
+    widget_billboard {
+      title  = "CPU utilization (%)"
+      row    = 1
+      column = 5
+      height = 2
+      width  = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.cpu.usertime.utilization) AS `avg`, max(apm.service.cpu.usertime.utilization) AS `max` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # MEM utilization (MB)
+    widget_billboard {
+      title  = "MEM utilization (MB)"
+      row    = 1
+      column = 9
+      height = 2
+      width  = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.memory.physical) AS `avg`, max(apm.service.memory.physical) AS `max` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Average CPU utilization (%)
+    widget_line {
+      title  = "Average CPU utilization (%)"
+      row    = 3
+      column = 1
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.cpu.usertime.utilization) AS `cpu` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Average CPU utilization by instance (%)
+    widget_line {
+      title  = "Average CPU utilization by instance (%)"
+      row    = 3
+      column = 7
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.cpu.usertime.utilization) AS `cpu` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET instanceName TIMESERIES LIMIT 10"
+      }
+    }
+
+    # Maximum CPU utilization (%)
+    widget_line {
+      title  = "Maximum CPU utilization (%)"
+      row    = 6
+      column = 1
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(apm.service.cpu.usertime.utilization) AS `cpu` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Maximum CPU utilization by instance (%)
+    widget_line {
+      title  = "Maximum CPU utilization by instance (%)"
+      row    = 6
+      column = 7
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(apm.service.cpu.usertime.utilization) AS `cpu` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET instanceName TIMESERIES LIMIT 10"
+      }
+    }
+
+    # Average MEM usage (MB)
+    widget_line {
+      title  = "Average MEM usage (MB)"
+      row    = 9
+      column = 1
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.memory.physical) AS `mem` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Average MEM usage by instance (MB)
+    widget_line {
+      title  = "Average MEM usage by instance (MB)"
+      row    = 9
+      column = 7
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.memory.physical) AS `mem` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET instanceName TIMESERIES LIMIT 10"
+      }
+    }
+
+    # Maximum MEM usage (MB)
+    widget_line {
+      title  = "Maximum CPU usage (MB)"
+      row    = 12
+      column = 1
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(apm.service.memory.physical) AS `mem` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Maximum MEM usage by instance (MB)
+    widget_line {
+      title  = "Maximum MEM usage by instance (MB)"
+      row    = 12
+      column = 7
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(apm.service.memory.physical) AS `mem` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET instanceName TIMESERIES LIMIT 10"
+      }
+    }
+  }
 }
