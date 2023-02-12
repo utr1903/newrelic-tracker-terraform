@@ -765,18 +765,141 @@ resource "newrelic_one_dashboard" "app" {
       }
     }
 
-    # # Database operations (ms)
-    # widget_line {
-    #   title  = "Database operations (ms)"
-    #   row    = 3
-    #   column = 7
-    #   height = 3
-    #   width  = 6
+    # Long database call spans
+    widget_table {
+      title  = "Long database call spans"
+      row    = 11
+      column = 1
+      height = 4
+      width  = 12
 
-    #   nrql_query {
-    #     account_id = var.NEW_RELIC_ACCOUNT_ID
-    #     query      = "FROM Metric SELECT sum(apm.service.datastore.operation.duration * 1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET `datastoreType`, `table`, `operation` TIMESERIES "
-    #   }
-    # }
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Span SELECT component, db.instance, db.collection, db.statement, duration.ms, host, trace.id WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND db.statement IS NOT NULL AND duration.ms > (FROM Span SELECT percentile(duration.ms, 90) WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND db.statement IS NOT NULL)"
+      }
+    }
+
+    # External call analysis
+    widget_markdown {
+      title  = "External call analysis"
+      row    = 15
+      column = 1
+      height = 3
+      width  = 3
+
+      text = "## External call analysis\n\nThe external calls of the application can be taken into consideration as follows:\n- Total duration\n- External host\n\nFurther investigation can be performed by inspecting the individual spans."
+    }
+
+    # Total external call duration by host (ms)
+    widget_bar {
+      title  = "Total external call duration by host (ms)"
+      row    = 15
+      column = 4
+      height = 3
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT sum(apm.service.external.host.duration * 1000) AS `Total external call duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET external.host TIMESERIES"
+      }
+    }
+
+    # Average external call duration by host (ms)
+    widget_bar {
+      title  = "Average external call duration by host (ms)"
+      row    = 15
+      column = 7
+      height = 3
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.external.host.duration * 1000) AS `Average external call duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET external.host TIMESERIES"
+      }
+    }
+
+    # Throughput of external calls by host (rpm)
+    widget_bar {
+      title  = "Throughput of external calls (rpm)"
+      row    = 15
+      column = 10
+      height = 3
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT rate(count(apm.service.external.host.duration), 1 minute) AS `external call throughput (rpm)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET external.host TIMESERIES"
+      }
+    }
+
+    # Total external call duration (ms)
+    widget_line {
+      title  = "Total external call duration (ms)"
+      row    = 18
+      column = 1
+      height = 3
+      width  = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT sum(apm.service.external.total.duration * 1000) AS `Total external call duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Average external call duration (ms)
+    widget_line {
+      title  = "Average external call duration (ms)"
+      row    = 18
+      column = 5
+      height = 3
+      width  = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.external.total.duration * 1000) AS `Average external call duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Throughput of external calls (rpm)
+    widget_line {
+      title  = "Throughput of external calls (rpm)"
+      row    = 18
+      column = 9
+      height = 3
+      width  = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT rate(count(apm.service.external.total.duration), 1 minute) AS `external call throughput (rpm)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Long external call spans
+    widget_table {
+      title  = "Long external call spans"
+      row    = 22
+      column = 1
+      height = 4
+      width  = 12
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Span SELECT http.statusCode, http.url, host, trace.id, duration.ms WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND span.kind = 'client' AND duration.ms > (FROM Span SELECT percentile(duration.ms, 90) WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND span.kind = 'client')"
+      }
+    }
+
+    # Failed external call spans
+    widget_table {
+      title  = "Failed external call spans"
+      row    = 26
+      column = 1
+      height = 4
+      width  = 12
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Span SELECT http.statusCode, http.url, host, trace.id, duration.ms WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND span.kind = 'client' AND http.statusCode > 399"
+      }
+    }
   }
 }
