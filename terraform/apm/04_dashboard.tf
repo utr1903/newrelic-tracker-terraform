@@ -6,21 +6,21 @@
 resource "newrelic_one_dashboard" "app" {
   name = "APM | ${var.app_name}"
 
-  ##############################
-  ### WEB & NON-WEB INSIGHTS ###
-  ##############################
+  ####################
+  ### WEB INSIGHTS ###
+  ####################
   page {
-    name = "Web & Non-Web Insights"
+    name = "Web Insights"
 
     # Page description
     widget_markdown {
       title  = "Page description"
       row    = 1
       column = 1
-      height = 4
+      height = 2
       width  = 3
 
-      text = "## Overview Insights\n\n### Web transactions\nRefers to synchronous calls\n- HTTP\n- gRPC\n\n### Non-web transactions\nRefers to asynchronous calls.\n- Kafka\n- SQS\n- Service Bus"
+      text = "## Overview Insights\n\n### Web transactions\nRefers to synchronous calls\n- HTTP\n- gRPC"
     }
 
     # Average web response time (ms)
@@ -65,10 +65,112 @@ resource "newrelic_one_dashboard" "app" {
       }
     }
 
+    # Web response time by segment (ms)
+    widget_area {
+      title  = "Web response time by segment (ms)"
+      row    = 3
+      column = 1
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.overview.web*1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET segmentName TIMESERIES LIMIT MAX"
+      }
+    }
+
+    # Web response time by instance (ms)
+    widget_line {
+      title  = "Web response time by instance (ms)"
+      row    = 3
+      column = 7
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM (FROM Metric SELECT average(apm.service.overview.web*1000) AS `duration` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET instanceName, segmentName TIMESERIES LIMIT MAX) SELECT sum(`duration`) FACET instanceName TIMESERIES"
+      }
+    }
+
+    # Average web throughput (rpm)
+    widget_line {
+      title  = "Average web throughput (rpm)"
+      row    = 6
+      column = 1
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) AS 'Average web throughput (rpm)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Web' TIMESERIES"
+      }
+    }
+
+    # Average web throughput by instance (rpm)
+    widget_line {
+      title  = "Average web throughput by instance (rpm)"
+      row    = 6
+      column = 7
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Web' FACET instanceName TIMESERIES"
+      }
+    }
+
+    # Average web error rate (%)
+    widget_line {
+      title  = "Average web error rate (%)"
+      row    = 9
+      column = 1
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 as 'Average web error rate (%)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Web' TIMESERIES"
+      }
+    }
+
+    # Average web error rate by instance (%)
+    widget_line {
+      title  = "Average web error rate by instance (%)"
+      row    = 9
+      column = 7
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 as 'Average web error rate (%)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Web' FACET instanceName TIMESERIES"
+      }
+    }
+  }
+
+  ########################
+  ### NON-WEB INSIGHTS ###
+  ########################
+  page {
+    name = "Non-Web Insights"
+
+    # Page description
+    widget_markdown {
+      title  = "Page description"
+      row    = 1
+      column = 1
+      height = 2
+      width  = 3
+
+      text = "## Overview Insights\n\n### Non-web transactions\nRefers to asynchronous calls.\n- Kafka\n- SQS\n- Service Bus"
+    }
+
     # Average non-web response time (ms)
     widget_billboard {
       title  = "Average non-web response time (ms)"
-      row    = 3
+      row    = 1
       column = 4
       height = 2
       width  = 3
@@ -82,7 +184,7 @@ resource "newrelic_one_dashboard" "app" {
     # Average non-web throughput (rpm)
     widget_billboard {
       title  = "Average non-web throughput (rpm)"
-      row    = 3
+      row    = 1
       column = 7
       height = 2
       width  = 3
@@ -96,7 +198,7 @@ resource "newrelic_one_dashboard" "app" {
     # Average non-web error rate (%)
     widget_billboard {
       title  = "Average non-web error rate (%)"
-      row    = 3
+      row    = 1
       column = 10
       height = 2
       width  = 3
@@ -107,87 +209,87 @@ resource "newrelic_one_dashboard" "app" {
       }
     }
 
-    # Web response time by segment (ms)
+    # Non-web response time by segment (ms)
     widget_area {
-      title  = "Web response time by segment (ms)"
-      row    = 5
+      title  = "Non-web response time by segment (ms)"
+      row    = 3
       column = 1
       height = 3
       width  = 6
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.overview.web*1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET segmentName LIMIT MAX TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.overview.other*1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET segmentName TIMESERIES"
       }
     }
 
-    # Non-web response time by segment (ms)
+    # Non-web response time by instance (ms)
     widget_area {
-      title  = "Non-web response time by segment (ms)"
-      row    = 5
+      title  = "Non-web response time by instance (ms)"
+      row    = 3
       column = 7
       height = 3
       width  = 6
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.overview.other*1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET segmentName LIMIT MAX TIMESERIES"
-      }
-    }
-
-    # Average web throughput (rpm)
-    widget_line {
-      title  = "Average web throughput (rpm)"
-      row    = 8
-      column = 1
-      height = 3
-      width  = 6
-
-      nrql_query {
-        account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) as 'Average web throughput (rpm)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Web' LIMIT MAX TIMESERIES"
+        query      = "FROM (FROM Metric SELECT average(apm.service.overview.other*1000) AS `duration` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET instanceName, segmentName LIMIT MAX) SELECT sum(`duration`) AS `Average non-web response time (ms)` FACET instanceName TIMESERIES"
       }
     }
 
     # Average non-web throughput (rpm)
     widget_line {
       title  = "Average non-web throughput (rpm)"
-      row    = 8
-      column = 7
-      height = 3
-      width  = 6
-
-      nrql_query {
-        account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) as 'Average non-web throughput (rpm)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Other' LIMIT MAX TIMESERIES"
-      }
-    }
-
-    # Average web error rate (%)
-    widget_line {
-      title  = "Average web error rate (%)"
-      row    = 11
+      row    = 7
       column = 1
       height = 3
       width  = 6
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 as 'Average web error rate (%)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Web' LIMIT MAX TIMESERIES"
+        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) AS 'Average non-web throughput (rpm)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Other' TIMESERIES"
       }
     }
 
-    # Average non-web error rate (%)
+    # Average non-web throughput by instance (rpm)
     widget_line {
-      title  = "Average non-web error rate (%)"
-      row    = 11
+      title  = "Average non-web throughput by instance (rpm)"
+      row    = 7
       column = 7
       height = 3
       width  = 6
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 as 'Average non-web error rate (%)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Other' LIMIT MAX TIMESERIES"
+        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Other' FACET instanceName TIMESERIES"
+      }
+    }
+
+    # Average non-web error rate (%)
+    widget_line {
+      title  = "Average non-web error rate (%)"
+      row    = 10
+      column = 1
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 AS 'Average non-web error rate (%)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Other' TIMESERIES"
+      }
+    }
+
+    # Average non-web error rate by instance (%)
+    widget_line {
+      title  = "Average non-web error rate by instance (%)"
+      row    = 10
+      column = 7
+      height = 3
+      width  = 6
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Other' FACET instanceName TIMESERIES"
       }
     }
   }
