@@ -545,7 +545,7 @@ resource "newrelic_one_dashboard" "app" {
       title  = "Transactions with errors"
       row    = 10
       column = 1
-      height = 3
+      height = 5
       width  = 8
 
       nrql_query {
@@ -559,7 +559,7 @@ resource "newrelic_one_dashboard" "app" {
       title  = "Transaction count by URI"
       row    = 10
       column = 9
-      height = 3
+      height = 5
       width  = 4
 
       nrql_query {
@@ -567,5 +567,216 @@ resource "newrelic_one_dashboard" "app" {
         query      = "FROM Transaction SELECT count(*) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET request.uri LIMIT 20"
       }
     }
+  }
+
+  #############################
+  ### EXTERNAL INTERACTIONS ###
+  #############################
+  page {
+    name = "External Interactions"
+
+    # Page description
+    widget_markdown {
+      title  = "Page description"
+      row    = 1
+      column = 1
+      height = 4
+      width  = 3
+
+      text = "## External Interactions\n\nThis page is dedicated for the external transactions. This would include:\n- the external calls to other services (e.g. HTTP/gRPC requests)\n- the database calls (e.g. MySQL, Postgres).\n\n### Bare in mind!\n\n the widgets which are using `Transaction` or `Span` do not correspond to the overall behaviour of the application, since the agent starts dropping and not tracking all transactions in cases of high throughput."
+    }
+
+    # Total database operation duration (ms)
+    widget_billboard {
+      title  = "Total database operation duration (ms)"
+      row    = 1
+      column = 4
+      height = 2
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT sum(apm.service.datastore.operation.duration * 1000) AS `Total database operation duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Average database operation duration (ms)
+    widget_billboard {
+      title  = "Average database operation duration (ms)"
+      row    = 1
+      column = 7
+      height = 2
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.datastore.operation.duration * 1000) AS `Average database operation duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Throughput of database operations (rpm)
+    widget_billboard {
+      title  = "Throughput of database operations (rpm)"
+      row    = 1
+      column = 10
+      height = 2
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT rate(count(apm.service.datastore.operation.duration), 1 minute) AS `Database operation throughput (rpm)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Total external call duration (ms)
+    widget_billboard {
+      title  = "Total external call duration (ms)"
+      row    = 3
+      column = 4
+      height = 2
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT sum(apm.service.external.total.duration * 1000) AS `Total external call duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Average external call duration (ms)
+    widget_billboard {
+      title  = "Average external call duration (ms)"
+      row    = 3
+      column = 7
+      height = 2
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.external.total.duration * 1000) AS `Average external call duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Throughput of external calls (rpm)
+    widget_billboard {
+      title  = "Throughput of external calls (rpm)"
+      row    = 3
+      column = 10
+      height = 2
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT rate(count(apm.service.external.total.duration), 1 minute) AS `external call throughput (rpm)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+      }
+    }
+
+    # Database table analysis
+    widget_markdown {
+      title  = "Database table analysis"
+      row    = 5
+      column = 1
+      height = 3
+      width  = 3
+
+      text = "## Database table analysis\n\nThe database calls of the application can be tracked by:\n- Database server\n- Database table\n- Operation type\n\nFurther investigation can be performed by inspecting the individual spans."
+    }
+
+    # Total operation durations by database/table/type (ms)
+    widget_bar {
+      title  = "Total operation durations by database/table/type (ms)"
+      row    = 5
+      column = 4
+      height = 3
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT sum(apm.service.datastore.operation.duration * 1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET `datastoreType`, `table`, `operation`"
+      }
+    }
+
+    # Average operation durations by database/table/type (ms)
+    widget_bar {
+      title  = "Average operation durations by database/table/type (ms)"
+      row    = 5
+      column = 7
+      height = 3
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.datastore.operation.duration * 1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET `datastoreType`, `table`, `operation`"
+      }
+    }
+
+    # Throughput of operations by database/table/type (rpm)
+    widget_bar {
+      title  = "Throughput of operations by database/table/type (rpm)"
+      row    = 5
+      column = 10
+      height = 3
+      width  = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT rate(count(apm.service.datastore.operation.duration), 1 minute) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET concat(datastoreType, ' ', table, ' ', operation)"
+      }
+    }
+
+    # Total operation durations by database/table/type (ms)
+    widget_area {
+      title  = "Total operation durations by database/table/type (ms)"
+      row    = 8
+      column = 1
+      height = 3
+      width  = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT sum(apm.service.datastore.operation.duration * 1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET `datastoreType`, `table`, `operation` TIMESERIES"
+      }
+    }
+
+    # Average operation durations by database/table/type (ms)
+    widget_area {
+      title  = "Average operation durations by database/table/type (ms)"
+      row    = 8
+      column = 5
+      height = 3
+      width  = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(apm.service.datastore.operation.duration * 1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET `datastoreType`, `table`, `operation` TIMESERIES"
+      }
+    }
+
+    # Throughput of operations by database/table/type (rpm)
+    widget_area {
+      title  = "Throughput of operations by database/table/type (rpm)"
+      row    = 8
+      column = 9
+      height = 3
+      width  = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT rate(count(apm.service.datastore.operation.duration), 1 minute) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET concat(datastoreType, ' ', table, ' ', operation) TIMESERIES"
+      }
+    }
+
+    # # Database operations (ms)
+    # widget_line {
+    #   title  = "Database operations (ms)"
+    #   row    = 3
+    #   column = 7
+    #   height = 3
+    #   width  = 6
+
+    #   nrql_query {
+    #     account_id = var.NEW_RELIC_ACCOUNT_ID
+    #     query      = "FROM Metric SELECT sum(apm.service.datastore.operation.duration * 1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET `datastoreType`, `table`, `operation` TIMESERIES "
+    #   }
+    # }
   }
 }
