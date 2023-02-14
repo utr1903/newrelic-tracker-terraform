@@ -550,7 +550,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM TransactionError SELECT host, error.expected, error.class, error.message WHERE entity.guid = '${data.newrelic_entity.app.guid}' LIMIT 20"
+        query      = "FROM TransactionError SELECT host, error.expected, error.class, error.message, traceId WHERE entity.guid = '${data.newrelic_entity.app.guid}' LIMIT MAX"
       }
     }
 
