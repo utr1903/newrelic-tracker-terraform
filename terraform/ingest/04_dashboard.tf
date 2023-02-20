@@ -9,56 +9,115 @@ resource "newrelic_one_dashboard" "ingest" {
   page {
     name = "Overview"
 
-    # Page description
-    widget_markdown {
-      title  = "Page description"
-      row    = 1
+    # Ingest / Ordered ingest (GB)
+    widget_billboard {
+      title  = "Ingest / Ordered ingest (GB)"
       column = 1
-      width  = 3
-      height = 4
-
-      text = "## Overview\n."
-    }
-
-    # Ingest by source
-    widget_area {
-      title  = "Ingest by source"
       row    = 1
-      column = 4
-      width  = 9
-      height = 4
+      width  = 3
+      height = 3
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM NrConsumption SELECT rate(sum(GigabytesIngested), 1 day) AS avgGbIngestTimeseries WHERE productLine = 'DataPlatform' FACET usageMetric LIMIT MAX SINCE 30 days ago TIMESERIES AUTO"
+        query      = "FROM NrConsumption SELECT sum(BytesIngested)/1e9 AS 'Ingested volume (In GB)' SINCE this year"
       }
     }
 
-    # Tracing by apps
+    # Ingest / Ordered ingest (GB)
+    widget_line {
+      title  = "Ingest / Ordered ingest (GB)"
+      column = 4
+      row    = 1
+      width  = 9
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM NrConsumption SELECT sum(GigabytesIngested) WHERE productLine = 'DataPlatform' FACET usageMetric TIMESERIES 1 day SINCE 30 days ago"
+      }
+    }
+
+    # APM Ingest by App (GB, %)
     widget_pie {
-      title  = "Tracing by apps"
-      row    = 5
+      title  = "APM Ingest by App (GB, %)"
       column = 1
+      row    = 4
       width  = 4
       height = 4
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Span SELECT bytecountestimate()/10e8 WHERE instrumentation.provider != 'pixie' FACET entity.name LIMIT 15 SINCE 30 days ago"
+        query      = "FROM Transaction, TransactionError SELECT bytecountestimate()/1e9 FACET appName SINCE this year LIMIT MAX"
       }
     }
 
-    # Tracing by apps timeseries
-    widget_line {
-      title  = "Tracing by apps timeseries"
-      row    = 5
+    # APM Ingest by App (GB)
+    widget_area {
+      title  = "APM Ingest by App (GB)"
       column = 5
+      row    = 4
       width  = 8
       height = 4
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Span SELECT bytecountestimate()/10e8 WHERE instrumentation.provider != 'pixie' FACET entity.name LIMIT 15 SINCE 30 days ago TIMESERIES AUTO"
+        query      = "FROM Transaction, TransactionError SELECT bytecountestimate()/1e9 TIMESERIES FACET appName SINCE this year LIMIT MAX"
+      }
+    }
+
+    # Ingest by Telemetry Datatype (GB)
+    widget_pie {
+      title  = "Ingest by Telemetry Datatype (GB)"
+      column = 1
+      row    = 8
+      width  = 4
+      height = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM NrConsumption SELECT sum(BytesIngested)/1e9 FACET usageMetric SINCE this year"
+      }
+    }
+
+    # Ingest by Telemetry Datatype (GB)
+    widget_area {
+      title  = "Ingest by Telemetry Datatype (GB)"
+      column = 5
+      row    = 8
+      width  = 8
+      height = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Transaction, TransactionError SELECT bytecountestimate()/1e9 FACET appName TIMESERIES SINCE this year LIMIT MAX"
+      }
+    }
+
+    # Event Type (count, %)
+    widget_pie {
+      title  = "Event Type (count, %)"
+      column = 1
+      row    = 12
+      width  = 4
+      height = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Transaction, TransactionError, TransactionTrace, ErrorTrace, Span SELECT count(*) FACET eventType() SINCE this year LIMIT MAX"
+      }
+    }
+
+    # Event Type (count)
+    widget_area {
+      title  = "Event Type (count)"
+      column = 5
+      row    = 12
+      width  = 8
+      height = 4
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Transaction, TransactionError, TransactionTrace, ErrorTrace, Span SELECT count(*) FACET eventType() TIMESERIES SINCE this year LIMIT MAX"
       }
     }
   }
