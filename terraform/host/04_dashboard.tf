@@ -571,9 +571,243 @@ resource "newrelic_one_dashboard" "host" {
     }
   }
 
-  # page {
-  #   name = "Network"
-  # }
+  page {
+    name = "Network"
+
+    # Receive throughput (MB/sec)
+    widget_markdown {
+      title  = "Receive throughput (MB/sec)"
+      column = 1
+      row    = 1
+      width  = 3
+      height = 3
+
+      text = "The number of megabytes per second received during the sampling period."
+    }
+
+    # Max receive throughput (MB/sec)
+    widget_bar {
+      title  = "Max receive throughput (MB/sec)"
+      column = 4
+      row    = 1
+      width  = 3
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(host.net.receiveBytesPerSecond)/1e6 AS `max` FACET host.hostname WHERE host.hostname IN ({{hostnames}})"
+      }
+    }
+
+    # Receive throughput (MB/sec)
+    widget_line {
+      title  = "Receive throughput (MB/sec)"
+      column = 7
+      row    = 1
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(host.net.receiveBytesPerSecond)/1e6 FACET host.hostname WHERE host.hostname IN ({{hostnames}}) TIMESERIES"
+      }
+    }
+
+    # Receive drop (packet/sec)
+    widget_markdown {
+      title  = "Receive drop (packet/sec)"
+      column = 1
+      row    = 4
+      width  = 3
+      height = 3
+
+      text = "The number of received packets per second dropped during the sampling period."
+    }
+
+    # Max receive drop (packet/sec)
+    widget_bar {
+      title  = "Max receive drop (packet/sec)"
+      column = 4
+      row    = 4
+      width  = 3
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(host.net.receiveDroppedPerSecond) AS `max` FACET host.hostname WHERE host.hostname IN ({{hostnames}})"
+      }
+    }
+
+    # Receive drop (packet/sec)
+    widget_line {
+      title  = "Receive drop (packet/sec)"
+      column = 7
+      row    = 4
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(host.net.receiveDroppedPerSecond) FACET host.hostname WHERE host.hostname IN ({{hostnames}}) TIMESERIES"
+      }
+    }
+
+    # Receive error (1/sec)
+    widget_markdown {
+      title  = "Receive error (1/sec)"
+      column = 1
+      row    = 7
+      width  = 3
+      height = 3
+
+      text = "The number of receive errors per second on the interface during the sampling period."
+    }
+
+    # Max receive error (1/sec)
+    widget_bar {
+      title  = "Max receive error (1/sec)"
+      column = 4
+      row    = 7
+      width  = 3
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(host.net.receiveDroppedPerSecond) AS `max` FACET host.hostname WHERE host.hostname IN ({{hostnames}})"
+      }
+    }
+
+    # Receive error (1/sec)
+    widget_line {
+      title  = "Receive error (1/sec)"
+      column = 7
+      row    = 7
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(host.net.receiveDroppedPerSecond) FACET host.hostname WHERE host.hostname IN ({{hostnames}}) TIMESERIES"
+      }
+    }
+
+    # Transmit throughput (MB/sec)
+    widget_markdown {
+      title  = "Transmit throughput (MB/sec)"
+      column = 1
+      row    = 10
+      width  = 3
+      height = 3
+
+      text = "The number of megabytes per second transmited during the sampling period."
+    }
+
+    # Max transmit throughput (MB/sec)
+    widget_bar {
+      title  = "Max transmit throughput (MB/sec)"
+      column = 4
+      row    = 10
+      width  = 3
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(host.net.transmitBytesPerSecond)/1e6 AS `max` FACET host.hostname WHERE host.hostname IN ({{hostnames}})"
+      }
+    }
+
+    # Transmit throughput (MB/sec)
+    widget_line {
+      title  = "Transmit throughput (MB/sec)"
+      column = 7
+      row    = 10
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(host.net.transmitBytesPerSecond)/1e6 FACET host.hostname WHERE host.hostname IN ({{hostnames}}) TIMESERIES"
+      }
+    }
+
+    # Transmit drop (packet/sec)
+    widget_markdown {
+      title  = "Transmit drop (packet/sec)"
+      column = 1
+      row    = 13
+      width  = 3
+      height = 3
+
+      text = "The number of transmited packets per second dropped during the sampling period."
+    }
+
+    # Max transmit drop (packet/sec)
+    widget_bar {
+      title  = "Max transmit drop (packet/sec)"
+      column = 4
+      row    = 13
+      width  = 3
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(host.net.transmitDroppedPerSecond) AS `max` FACET host.hostname WHERE host.hostname IN ({{hostnames}})"
+      }
+    }
+
+    # Transmit drop (packet/sec)
+    widget_line {
+      title  = "Transmit drop (packet/sec)"
+      column = 7
+      row    = 13
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(host.net.transmitDroppedPerSecond) FACET host.hostname WHERE host.hostname IN ({{hostnames}}) TIMESERIES"
+      }
+    }
+
+    # Transmit error (1/sec)
+    widget_markdown {
+      title  = "Transmit error (1/sec)"
+      column = 1
+      row    = 16
+      width  = 3
+      height = 3
+
+      text = "The number of transmit errors per second on the interface during the sampling period."
+    }
+
+    # Max transmit error (1/sec)
+    widget_bar {
+      title  = "Max transmit error (1/sec)"
+      column = 4
+      row    = 16
+      width  = 3
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(host.net.transmitDroppedPerSecond) AS `max` FACET host.hostname WHERE host.hostname IN ({{hostnames}})"
+      }
+    }
+
+    # Transmit error (1/sec)
+    widget_line {
+      title  = "Transmit error (1/sec)"
+      column = 7
+      row    = 16
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(host.net.transmitDroppedPerSecond) FACET host.hostname WHERE host.hostname IN ({{hostnames}}) TIMESERIES"
+      }
+    }
+  }
 
   # page {
   #   name = "Process"
