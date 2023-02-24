@@ -340,7 +340,7 @@ resource "newrelic_one_dashboard" "host" {
       width  = 3
       height = 3
 
-      text = "The portion of available memory that is in use on this server, in percentage."
+      text = "The portion of available memory that is in use on this server, in percentage.\n\nThe higher the used space is,\n- the more you are benefiting from the host\n- the less free space you have in case of higher memory allocation (you can consider scaling up)"
     }
 
     # Max MEM utilization (%)
@@ -379,7 +379,7 @@ resource "newrelic_one_dashboard" "host" {
       width  = 3
       height = 3
 
-      text = "The portion of free memory available to this server, in percentage."
+      text = "The portion of free memory available to this server, in percentage.\n\nThe higher the free space is,\n- the more applications you can allocate on the host\n- the less you are benefiting from the host (you can consider shutting it down)"
     }
 
     # Max MEM free (%)
@@ -414,31 +414,159 @@ resource "newrelic_one_dashboard" "host" {
   page {
     name = "Storage"
 
+    # STO utilization (%)
+    widget_markdown {
+      title  = "STO utilization (%)"
+      column = 1
+      row    = 1
+      width  = 3
+      height = 3
+
+      text = "The cumulative disk fullness percentage across all supported devices.\n\nThe higher the used space is,\n- the more you are benefiting from your storage\n- the less free space you have for storing critical data (you can consider adding more storage devices)"
+    }
+
     # Max STO utilization (%)
     widget_bar {
       title  = "Max STO utilization (%)"
-      column = 1
-      row    = 7
+      column = 4
+      row    = 1
       width  = 3
       height = 3
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT max(host.memoryUsedPercent) AS `max` FACET host.hostname WHERE host.hostname IN ({{hostnames}})"
+        query      = "FROM Metric SELECT max(host.disk.usedPercent) AS `max` FACET host.hostname WHERE host.hostname IN ({{hostnames}})"
       }
     }
 
     # STO utilization (%)
     widget_line {
       title  = "STO utilization (%)"
-      column = 4
-      row    = 7
-      width  = 9
+      column = 7
+      row    = 1
+      width  = 6
       height = 3
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(host.memoryUsedPercent) FACET host.hostname WHERE host.hostname IN ({{hostnames}}) TIMESERIES"
+        query      = "FROM Metric SELECT average(host.disk.usedPercent) FACET host.hostname WHERE host.hostname IN ({{hostnames}}) TIMESERIES"
+      }
+    }
+
+    # STO free (%)
+    widget_markdown {
+      title  = "STO free (%)"
+      column = 1
+      row    = 4
+      width  = 3
+      height = 3
+
+      text = "The cumulative disk emptiness percentage across all supported devices.\n\nThe higher the free space is,\n- the more space you have to be able to store your data\n- the less you are benefiting from the storage (you can consider removing some storage devices)"
+    }
+
+    # Max STO free (%)
+    widget_bar {
+      title  = "Max STO free (%)"
+      column = 4
+      row    = 4
+      width  = 3
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(host.disk.freePercent) AS `max` FACET host.hostname WHERE host.hostname IN ({{hostnames}})"
+      }
+    }
+
+    # STO free (%)
+    widget_line {
+      title  = "STO free (%)"
+      column = 7
+      row    = 4
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(host.disk.freePercent) FACET host.hostname WHERE host.hostname IN ({{hostnames}}) TIMESERIES"
+      }
+    }
+
+    # STO read utilization (%)
+    widget_markdown {
+      title  = "STO read utilization (%)"
+      column = 1
+      row    = 7
+      width  = 3
+      height = 3
+
+      text = "The portion of disk I/O utilization for read operations..\n\nThe higher the utilization is,\n- the more you are benefiting from the host & disk read capacity\n- the less read throughput you have left for critical high read operations (you can consider increasing read IOPS capacity)"
+    }
+
+    # Max STO read utilization (%)
+    widget_bar {
+      title  = "Max STO read utilization (%)"
+      column = 4
+      row    = 7
+      width  = 3
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(host.disk.readUtilizationPercent) AS `max` FACET host.hostname WHERE host.hostname IN ({{hostnames}})"
+      }
+    }
+
+    # STO read utilization (%)
+    widget_line {
+      title  = "STO read utilization (%)"
+      column = 7
+      row    = 7
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(host.disk.readUtilizationPercent) FACET host.hostname WHERE host.hostname IN ({{hostnames}}) TIMESERIES"
+      }
+    }
+
+    # STO write utilization (%)
+    widget_markdown {
+      title  = "STO write utilization (%)"
+      column = 1
+      row    = 10
+      width  = 3
+      height = 3
+
+      text = "The portion of disk I/O utilization for write operations..\n\nThe higher the utilization is,\n- the more you are benefiting from the host & disk write capacity\n- the less write throughput you have left for critical high write operations (you can consider increasing write IOPS capacity)"
+    }
+
+    # Max STO write utilization (%)
+    widget_bar {
+      title  = "Max STO write utilization (%)"
+      column = 4
+      row    = 10
+      width  = 3
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT max(host.disk.writeUtilizationPercent) AS `max` FACET host.hostname WHERE host.hostname IN ({{hostnames}})"
+      }
+    }
+
+    # STO write utilization (%)
+    widget_line {
+      title  = "STO write utilization (%)"
+      column = 7
+      row    = 10
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(host.disk.writeUtilizationPercent) FACET host.hostname WHERE host.hostname IN ({{hostnames}}) TIMESERIES"
       }
     }
   }
