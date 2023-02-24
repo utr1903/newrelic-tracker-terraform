@@ -18,9 +18,4 @@ variable "NEW_RELIC_API_KEY" {
 variable "NEW_RELIC_REGION" {
   type = string
 }
-
-# Host name
-variable "host_name" {
-  type = string
-}
 ######
