@@ -2,9 +2,9 @@
 ### Dashboard ###
 #################
 
-# Dashboard - APM
-resource "newrelic_one_dashboard" "app" {
-  name = "APM | ${var.app_name}"
+# APM
+resource "newrelic_one_dashboard" "apm" {
+  name = "Ugur - APM Overview"
 
   ####################
   ### WEB INSIGHTS ###
@@ -33,7 +33,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM (FROM Metric SELECT average(apm.service.overview.web*1000) AS `duration` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET segmentName LIMIT MAX) SELECT sum(`duration`) AS `Average web response time (ms)`"
+        query      = "FROM Metric SELECT average(apm.service.transaction.duration*1000)  AS `Average web response time (ms)` WHERE appName IN ({{apmnames}}) AND transactionType = 'Web'"
       }
     }
 
@@ -47,7 +47,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) as 'Average web throughput (rpm)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Web' LIMIT MAX"
+        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) as 'Average web throughput (rpm)' WHERE appName IN ({{apmnames}}) AND transactionType = 'Web' LIMIT MAX"
       }
     }
 
@@ -61,7 +61,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 as 'Average web error rate (%)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Web' LIMIT MAX"
+        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 as 'Average web error rate (%)' WHERE appName IN ({{apmnames}}) AND transactionType = 'Web' LIMIT MAX"
       }
     }
 
@@ -75,7 +75,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.overview.web*1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET segmentName TIMESERIES LIMIT MAX"
+        query      = "FROM Metric SELECT average(apm.service.overview.web*1000) WHERE appName IN ({{apmnames}}) FACET segmentName TIMESERIES LIMIT MAX"
       }
     }
 
@@ -89,7 +89,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM (FROM Metric SELECT average(apm.service.overview.web*1000) AS `duration` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET instanceName, segmentName TIMESERIES LIMIT MAX) SELECT sum(`duration`) FACET instanceName TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.transaction.duration*1000) AS `duration` WHERE appName IN ({{apmnames}}) AND transactionType = 'Web' FACET instanceName TIMESERIES"
       }
     }
 
@@ -103,7 +103,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) AS 'Average web throughput (rpm)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Web' TIMESERIES"
+        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) AS 'Average web throughput (rpm)' WHERE appName IN ({{apmnames}}) AND transactionType = 'Web' TIMESERIES"
       }
     }
 
@@ -117,7 +117,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Web' FACET instanceName TIMESERIES"
+        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) WHERE appName IN ({{apmnames}}) AND transactionType = 'Web' FACET instanceName TIMESERIES"
       }
     }
 
@@ -131,7 +131,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 as 'Average web error rate (%)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Web' TIMESERIES"
+        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 as 'Average web error rate (%)' WHERE appName IN ({{apmnames}}) AND transactionType = 'Web' TIMESERIES"
       }
     }
 
@@ -145,7 +145,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 as 'Average web error rate (%)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Web' FACET instanceName TIMESERIES"
+        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 as 'Average web error rate (%)' WHERE appName IN ({{apmnames}}) AND transactionType = 'Web' FACET instanceName TIMESERIES"
       }
     }
   }
@@ -177,7 +177,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM (FROM Metric SELECT average(apm.service.overview.other*1000) AS `duration` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET segmentName LIMIT MAX) SELECT sum(`duration`) AS `Average non-web response time (ms)`"
+        query      = "FROM Metric SELECT average(apm.service.transaction.duration*1000) AS `Average non-web response time (ms)` WHERE appName IN ({{apmnames}}) AND transactionType = 'Other'"
       }
     }
 
@@ -191,7 +191,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) as 'Average non-web throughput (rpm)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Other' LIMIT MAX"
+        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) as 'Average non-web throughput (rpm)' WHERE appName IN ({{apmnames}}) AND transactionType = 'Other' LIMIT MAX"
       }
     }
 
@@ -205,7 +205,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 as 'Average non-web error rate (%)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Other' LIMIT MAX"
+        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 as 'Average non-web error rate (%)' WHERE appName IN ({{apmnames}}) AND transactionType = 'Other' LIMIT MAX"
       }
     }
 
@@ -219,7 +219,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.overview.other*1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET segmentName TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.overview.other*1000) WHERE appName IN ({{apmnames}}) FACET segmentName TIMESERIES"
       }
     }
 
@@ -233,7 +233,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM (FROM Metric SELECT average(apm.service.overview.other*1000) AS `duration` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET instanceName, segmentName LIMIT MAX) SELECT sum(`duration`) AS `Average non-web response time (ms)` FACET instanceName TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.transaction.druation*1000) WHERE appName IN ({{apmnames}}) AND transactionType = 'Other' FACET instanceName TIMESERIES"
       }
     }
 
@@ -247,7 +247,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) AS 'Average non-web throughput (rpm)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Other' TIMESERIES"
+        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) AS 'Average non-web throughput (rpm)' WHERE appName IN ({{apmnames}}) AND transactionType = 'Other' TIMESERIES"
       }
     }
 
@@ -261,7 +261,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Other' FACET instanceName TIMESERIES"
+        query      = "FROM Metric SELECT rate(count(apm.service.transaction.duration), 1 minute) WHERE appName IN ({{apmnames}}) AND transactionType = 'Other' FACET instanceName TIMESERIES"
       }
     }
 
@@ -275,7 +275,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 AS 'Average non-web error rate (%)' WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Other' TIMESERIES"
+        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 AS 'Average non-web error rate (%)' WHERE appName IN ({{apmnames}}) AND transactionType = 'Other' TIMESERIES"
       }
     }
 
@@ -289,7 +289,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND transactionType = 'Other' FACET instanceName TIMESERIES"
+        query      = "FROM Metric SELECT count(apm.service.error.count)/count(apm.service.transaction.duration)*100 WHERE appName IN ({{apmnames}}) AND transactionType = 'Other' FACET instanceName TIMESERIES"
       }
     }
   }
@@ -321,7 +321,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.cpu.usertime.utilization) AS `avg`, max(apm.service.cpu.usertime.utilization) AS `max` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.cpu.usertime.utilization) AS `avg`, max(apm.service.cpu.usertime.utilization) AS `max` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -335,7 +335,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.memory.physical) AS `avg`, max(apm.service.memory.physical) AS `max` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.memory.physical) AS `avg`, max(apm.service.memory.physical) AS `max` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -349,7 +349,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.cpu.usertime.utilization) AS `cpu` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.cpu.usertime.utilization) AS `cpu` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -363,7 +363,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.cpu.usertime.utilization) AS `cpu` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET instanceName TIMESERIES LIMIT 10"
+        query      = "FROM Metric SELECT average(apm.service.cpu.usertime.utilization) AS `cpu` WHERE appName IN ({{apmnames}}) FACET instanceName TIMESERIES LIMIT 10"
       }
     }
 
@@ -377,7 +377,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT max(apm.service.cpu.usertime.utilization) AS `cpu` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT max(apm.service.cpu.usertime.utilization) AS `cpu` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -391,7 +391,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT max(apm.service.cpu.usertime.utilization) AS `cpu` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET instanceName TIMESERIES LIMIT 10"
+        query      = "FROM Metric SELECT max(apm.service.cpu.usertime.utilization) AS `cpu` WHERE appName IN ({{apmnames}}) FACET instanceName TIMESERIES LIMIT 10"
       }
     }
 
@@ -405,7 +405,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.memory.physical) AS `mem` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.memory.physical) AS `mem` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -419,7 +419,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.memory.physical) AS `mem` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET instanceName TIMESERIES LIMIT 10"
+        query      = "FROM Metric SELECT average(apm.service.memory.physical) AS `mem` WHERE appName IN ({{apmnames}}) FACET instanceName TIMESERIES LIMIT 10"
       }
     }
 
@@ -433,7 +433,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT max(apm.service.memory.physical) AS `mem` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT max(apm.service.memory.physical) AS `mem` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -447,7 +447,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT max(apm.service.memory.physical) AS `mem` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET instanceName TIMESERIES LIMIT 10"
+        query      = "FROM Metric SELECT max(apm.service.memory.physical) AS `mem` WHERE appName IN ({{apmnames}}) FACET instanceName TIMESERIES LIMIT 10"
       }
     }
   }
@@ -479,7 +479,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Transaction SELECT count(*) AS `Total transactions`, average(duration)*1000 AS `Average duration (ms)`, percentile(duration*1000, 90) as `Slowest duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' LIMIT MAX"
+        query      = "FROM Transaction SELECT count(*) AS `Total transactions`, average(duration)*1000 AS `Average duration (ms)`, percentile(duration*1000, 90) as `Slowest duration (ms)` WHERE appName IN ({{apmnames}}) LIMIT MAX"
       }
     }
 
@@ -493,8 +493,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Transaction SELECT rate(count(*), 1 minute) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET host LIMIT MAX TIMESERIES"
-        # query      = "FROM Transaction SELECT count(*) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET host LIMIT 10 TIMESERIES"
+        query      = "FROM Transaction SELECT rate(count(*), 1 minute) WHERE appName IN ({{apmnames}}) FACET host LIMIT MAX TIMESERIES"
       }
     }
 
@@ -508,7 +507,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Transaction SELECT count(*) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET transactionType LIMIT 10"
+        query      = "FROM Transaction SELECT count(*) WHERE appName IN ({{apmnames}}) FACET transactionType LIMIT 10"
       }
     }
 
@@ -522,7 +521,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Transaction SELECT count(*) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET request.method LIMIT 10"
+        query      = "FROM Transaction SELECT count(*) WHERE appName IN ({{apmnames}}) FACET request.method LIMIT 10"
       }
     }
 
@@ -536,7 +535,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Transaction SELECT count(*) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET name LIMIT 20"
+        query      = "FROM Transaction SELECT count(*) WHERE appName IN ({{apmnames}}) FACET name LIMIT 20"
       }
     }
 
@@ -550,7 +549,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM TransactionError SELECT host, error.expected, error.class, error.message, traceId WHERE entity.guid = '${data.newrelic_entity.app.guid}' LIMIT MAX"
+        query      = "FROM TransactionError SELECT host, error.expected, error.class, error.message, traceId WHERE appName IN ({{apmnames}}) LIMIT MAX"
       }
     }
 
@@ -564,7 +563,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Transaction SELECT count(*) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET request.uri LIMIT 20"
+        query      = "FROM Transaction SELECT count(*) WHERE appName IN ({{apmnames}}) FACET request.uri LIMIT 20"
       }
     }
   }
@@ -596,7 +595,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT sum(apm.service.datastore.operation.duration * 1000) AS `Total database operation duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT sum(apm.service.datastore.operation.duration * 1000) AS `Total database operation duration (ms)` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -610,7 +609,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.datastore.operation.duration * 1000) AS `Average database operation duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.datastore.operation.duration * 1000) AS `Average database operation duration (ms)` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -624,7 +623,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.datastore.operation.duration), 1 minute) AS `Database operation throughput (rpm)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT rate(count(apm.service.datastore.operation.duration), 1 minute) AS `Database operation throughput (rpm)` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -638,7 +637,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT sum(apm.service.external.total.duration * 1000) AS `Total external call duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT sum(apm.service.external.total.duration * 1000) AS `Total external call duration (ms)` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -652,7 +651,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.external.total.duration * 1000) AS `Average external call duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.external.total.duration * 1000) AS `Average external call duration (ms)` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -666,7 +665,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.external.total.duration), 1 minute) AS `external call throughput (rpm)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT rate(count(apm.service.external.total.duration), 1 minute) AS `external call throughput (rpm)` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -691,7 +690,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT sum(apm.service.datastore.operation.duration * 1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET `datastoreType`, `table`, `operation`"
+        query      = "FROM Metric SELECT sum(apm.service.datastore.operation.duration * 1000) WHERE appName IN ({{apmnames}}) FACET `datastoreType`, `table`, `operation`"
       }
     }
 
@@ -705,7 +704,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.datastore.operation.duration * 1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET `datastoreType`, `table`, `operation`"
+        query      = "FROM Metric SELECT average(apm.service.datastore.operation.duration * 1000) WHERE appName IN ({{apmnames}}) FACET `datastoreType`, `table`, `operation`"
       }
     }
 
@@ -719,7 +718,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.datastore.operation.duration), 1 minute) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET concat(datastoreType, ' ', table, ' ', operation)"
+        query      = "FROM Metric SELECT rate(count(apm.service.datastore.operation.duration), 1 minute) WHERE appName IN ({{apmnames}}) FACET concat(datastoreType, ' ', table, ' ', operation)"
       }
     }
 
@@ -733,7 +732,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT sum(apm.service.datastore.operation.duration * 1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET `datastoreType`, `table`, `operation` TIMESERIES"
+        query      = "FROM Metric SELECT sum(apm.service.datastore.operation.duration * 1000) WHERE appName IN ({{apmnames}}) FACET `datastoreType`, `table`, `operation` TIMESERIES"
       }
     }
 
@@ -747,7 +746,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.datastore.operation.duration * 1000) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET `datastoreType`, `table`, `operation` TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.datastore.operation.duration * 1000) WHERE appName IN ({{apmnames}}) FACET `datastoreType`, `table`, `operation` TIMESERIES"
       }
     }
 
@@ -761,7 +760,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.datastore.operation.duration), 1 minute) WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET concat(datastoreType, ' ', table, ' ', operation) TIMESERIES"
+        query      = "FROM Metric SELECT rate(count(apm.service.datastore.operation.duration), 1 minute) WHERE appName IN ({{apmnames}}) FACET concat(datastoreType, ' ', table, ' ', operation) TIMESERIES"
       }
     }
 
@@ -775,7 +774,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Span SELECT component, db.instance, db.collection, db.statement, duration.ms, host, trace.id WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND db.statement IS NOT NULL AND duration.ms > (FROM Span SELECT percentile(duration.ms, 90) WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND db.statement IS NOT NULL)"
+        query      = "FROM Span SELECT component, db.instance, db.collection, db.statement, duration.ms, host, trace.id WHERE appName IN ({{apmnames}}) AND db.statement IS NOT NULL AND duration.ms > (FROM Span SELECT percentile(duration.ms, 90) WHERE appName IN ({{apmnames}}) AND db.statement IS NOT NULL)"
       }
     }
 
@@ -800,7 +799,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT sum(apm.service.external.host.duration * 1000) AS `Total external call duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET external.host TIMESERIES"
+        query      = "FROM Metric SELECT sum(apm.service.external.host.duration * 1000) AS `Total external call duration (ms)` WHERE appName IN ({{apmnames}}) FACET external.host TIMESERIES"
       }
     }
 
@@ -814,7 +813,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.external.host.duration * 1000) AS `Average external call duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET external.host TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.external.host.duration * 1000) AS `Average external call duration (ms)` WHERE appName IN ({{apmnames}}) FACET external.host TIMESERIES"
       }
     }
 
@@ -828,7 +827,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.external.host.duration), 1 minute) AS `external call throughput (rpm)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' FACET external.host TIMESERIES"
+        query      = "FROM Metric SELECT rate(count(apm.service.external.host.duration), 1 minute) AS `external call throughput (rpm)` WHERE appName IN ({{apmnames}}) FACET external.host TIMESERIES"
       }
     }
 
@@ -842,7 +841,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT sum(apm.service.external.total.duration * 1000) AS `Total external call duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT sum(apm.service.external.total.duration * 1000) AS `Total external call duration (ms)` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -856,7 +855,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT average(apm.service.external.total.duration * 1000) AS `Average external call duration (ms)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT average(apm.service.external.total.duration * 1000) AS `Average external call duration (ms)` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -870,7 +869,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT rate(count(apm.service.external.total.duration), 1 minute) AS `external call throughput (rpm)` WHERE entity.guid = '${data.newrelic_entity.app.guid}' TIMESERIES"
+        query      = "FROM Metric SELECT rate(count(apm.service.external.total.duration), 1 minute) AS `external call throughput (rpm)` WHERE appName IN ({{apmnames}}) TIMESERIES"
       }
     }
 
@@ -884,7 +883,7 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Span SELECT http.statusCode, http.url, host, trace.id, duration.ms WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND span.kind = 'client' AND duration.ms > (FROM Span SELECT percentile(duration.ms, 90) WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND span.kind = 'client')"
+        query      = "FROM Span SELECT http.statusCode, http.url, host, trace.id, duration.ms WHERE appName IN ({{apmnames}}) AND span.kind = 'client' AND duration.ms > (FROM Span SELECT percentile(duration.ms, 90) WHERE appName IN ({{apmnames}}) AND span.kind = 'client')"
       }
     }
 
@@ -898,8 +897,22 @@ resource "newrelic_one_dashboard" "app" {
 
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Span SELECT http.statusCode, http.url, host, trace.id, duration.ms WHERE entity.guid = '${data.newrelic_entity.app.guid}' AND span.kind = 'client' AND http.statusCode > 399"
+        query      = "FROM Span SELECT http.statusCode, http.url, host, trace.id, duration.ms WHERE appName IN ({{apmnames}}) AND span.kind = 'client' AND http.statusCode > 399"
       }
+    }
+  }
+
+  variable {
+    title                = "APM Names"
+    name                 = "apmnames"
+    replacement_strategy = "default"
+    type                 = "nrql"
+    default_values       = ["*"]
+    is_multi_selection   = true
+
+    nrql_query {
+      account_ids = [var.NEW_RELIC_ACCOUNT_ID]
+      query       = "FROM Transaction SELECT uniques(appName) LIMIT MAX"
     }
   }
 }

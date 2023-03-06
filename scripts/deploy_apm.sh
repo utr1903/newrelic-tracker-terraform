@@ -11,10 +11,6 @@ while (( "$#" )); do
       flagDryRun="true"
       shift
       ;;
-    --app-name)
-      appName="$2"
-      shift
-      ;;
     *)
       shift
       ;;
@@ -46,12 +42,6 @@ if [[ $NEWRELIC_API_KEY == "" ]]; then
   exit 1
 fi
 
-# Application name
-if [[ $appName == "" ]]; then
-  echo "Define application name with the flag [--app-name]. For example -> <mydopeappprod>"
-  exit 1
-fi
-
 #################
 ### TERRAFORM ###
 #################
@@ -63,14 +53,13 @@ if [[ $flagDestroy != "true" ]]; then
     -backend-config="resource_group_name=rgtrackereuwterraform" \
     -backend-config="storage_account_name=sttrackereuwterraform" \
     -backend-config="container_name=tfstates" \
-    -backend-config="key=${NEWRELIC_ACCOUNT_ID}-apm-${appName}-local"
+    -backend-config="key=${NEWRELIC_ACCOUNT_ID}-apm-local"
 
   # Plan Terraform
   terraform -chdir=../terraform/apm plan \
     -var NEW_RELIC_ACCOUNT_ID=$NEWRELIC_ACCOUNT_ID \
     -var NEW_RELIC_API_KEY=$NEWRELIC_API_KEY \
     -var NEW_RELIC_REGION=$NEWRELIC_REGION \
-    -var app_name=$appName \
     -out "./tfplan"
 
   # Apply Terraform
@@ -83,7 +72,6 @@ else
   terraform -chdir=../terraform/apm destroy \
     -var NEW_RELIC_ACCOUNT_ID=$NEWRELIC_ACCOUNT_ID \
     -var NEW_RELIC_API_KEY=$NEWRELIC_API_KEY \
-    -var NEW_RELIC_REGION=$NEWRELIC_REGION \
-    -var app_name=$appName
+    -var NEW_RELIC_REGION=$NEWRELIC_REGION
 fi
 #########
