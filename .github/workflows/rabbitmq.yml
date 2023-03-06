@@ -1,0 +1,99 @@
+name: 'Terraform RabbitMQ'
+
+on:
+  workflow_call:
+    inputs:
+      newrelic_account_id:
+        required: true
+        type: string
+      newrelic_api_key:
+        required: true
+        type: string
+      newrelic_region:
+        required: true
+        type: string
+      terraform_destroy:
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_CLIENT_SECRET:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    # environment: production
+
+    env:
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Install the latest version of Terraform CLI
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Initialize Terraform
+      run: |
+        terraform -chdir=./terraform/rabbitmq init \
+        -backend-config="resource_group_name=rgtrackereuwterraform" \
+        -backend-config="storage_account_name=sttrackereuwterraform" \
+        -backend-config="container_name=tfstates" \
+        -backend-config="key=${{ inputs.newrelic_account_id }}-rabbitmq"
+
+    # Check that all Terraform configuration files adhere to a canonical format
+    - name: Format Terraform
+      run: terraform -chdir=./terraform/rabbitmq fmt -check
+
+    # Generate an execution plan for Terraform
+    - name: Plan Terraform
+      run: |
+        terraform -chdir=./terraform/rabbitmq plan \
+          -var NEW_RELIC_ACCOUNT_ID=${{ inputs.newrelic_account_id }} \
+          -var NEW_RELIC_API_KEY=${{ inputs.newrelic_api_key }} \
+          -var NEW_RELIC_REGION=${{ inputs.newrelic_region }} \
+          -out "./tfplan"
+
+    # Apply the configured Terraform plan
+    - name: Apply Terraform
+      if: inputs.terraform_destroy == false
+      run: |
+        terraform -chdir=./terraform/rabbitmq apply \
+          -auto-approve \
+          -var NEW_RELIC_ACCOUNT_ID=${{ inputs.newrelic_account_id }} \
+          -var NEW_RELIC_API_KEY=${{ inputs.newrelic_api_key }} \
+          -var NEW_RELIC_REGION=${{ inputs.newrelic_region }}
+
+    # Destroy the existing Terraform deployment
+    - name: Destroy Terraform
+      if: inputs.terraform_destroy == true
+      run: |
+        terraform -chdir=./terraform/rabbitmq destroy \
+          -auto-approve \
+          -var NEW_RELIC_ACCOUNT_ID=${{ inputs.newrelic_account_id }} \
+          -var NEW_RELIC_API_KEY=${{ inputs.newrelic_api_key }} \
+          -var NEW_RELIC_REGION=${{ inputs.newrelic_region }}
