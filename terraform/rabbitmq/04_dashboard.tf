@@ -103,7 +103,7 @@ resource "newrelic_one_dashboard" "rabbitmq" {
         query      = "FROM Metric SELECT latest(rabbitmq.vhost.connectionsTotal) WHERE host.hostname IN ({{rabbitmqnames}}) FACET host.hostname TIMESERIES"
       }
     }
-    
+
     # Connections running
     widget_billboard {
       title  = "Connections running"
@@ -185,6 +185,87 @@ resource "newrelic_one_dashboard" "rabbitmq" {
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
         query      = "FROM Metric SELECT latest(rabbitmq.vhost.connectionsTotal), latest(rabbitmq.vhost.connectionsRunning), latest(rabbitmq.vhost.connectionsClosed), latest(rabbitmq.vhost.connectionsClosing), latest(rabbitmq.vhost.connectionsBlocked), latest(rabbitmq.vhost.connectionsBlocking) WHERE host.hostname IN ({{rabbitmqnames}}) FACET host.hostname TIMESERIES"
+      }
+    }
+  }
+
+  page {
+    name = "Node Overview"
+
+    # Page description
+    widget_markdown {
+      title  = "Page description"
+      column = 1
+      row    = 1
+      width  = 3
+      height = 3
+
+      text = "## RabbitMQ Monitoring\n\n"
+    }
+
+    # Nodes
+    widget_billboard {
+      title  = "Nodes"
+      column = 4
+      row    = 1
+      width  = 3
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT uniqueCount(entity.name) as 'Total', filter(uniqueCount(entity.name), where rabbitmq.node.running[latest] > 0) as 'Running', filter(uniqueCount(entity.name), where rabbitmq.node.hostMemoryAlarm[latest] > 0) as 'Memory Alarms', filter(uniqueCount(entity.name), where rabbitmq.node.diskAlarm[latest] > 0) as 'Disk Alarms' WHERE metricName = 'rabbitmq.node.running' AND host.hostname IN ({{rabbitmqnames}})"
+      }
+    }
+
+    # Total memory usage (MB)
+    widget_line {
+      title  = "Total memory usage (MB)"
+      column = 7
+      row    = 1
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(rabbitmq.node.totalMemoryUsedInBytes)/1e6 WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+
+    # File descriptors
+    widget_line {
+      title  = "File descriptors"
+      column = 1
+      row    = 4
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(rabbitmq.node.fileDescriptorsTotalUsed) AS `used`, average(rabbitmq.node.fileDescriptorsTotal) AS `total` WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(rabbitmq.node.fileDescriptorsTotalUsed)/average(rabbitmq.node.fileDescriptorsTotal)*100 AS `util` WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+
+    # Processes
+    widget_line {
+      title  = "Processes"
+      column = 7
+      row    = 4
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(rabbitmq.node.processesUsed) AS `used`, average(rabbitmq.node.processesTotal) AS `total` WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(rabbitmq.node.processesUsed)/average(rabbitmq.node.processesTotal)*100 AS `util` WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
       }
     }
   }
