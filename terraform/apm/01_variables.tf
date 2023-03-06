@@ -19,8 +19,3 @@ variable "NEW_RELIC_REGION" {
   type = string
 }
 ######
-
-# Cluster Name
-variable "app_name" {
-  type = string
-}

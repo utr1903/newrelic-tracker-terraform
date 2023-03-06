@@ -34,7 +34,6 @@ jobs:
       newrelic_account_id: ${{ github.event.client_payload.newrelic_account_id }}
       newrelic_api_key: ${{ github.event.client_payload.newrelic_api_key }}
       newrelic_region: ${{ github.event.client_payload.newrelic_region }}
-      app_name: ${{ github.event.client_payload.app_name }}
       terraform_destroy: ${{ github.event.client_payload.terraform_destroy }}
     secrets:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
