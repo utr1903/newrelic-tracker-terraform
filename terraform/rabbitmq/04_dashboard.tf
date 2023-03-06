@@ -369,6 +369,134 @@ resource "newrelic_one_dashboard" "rabbitmq" {
     }
   }
 
+  page {
+    name = "Queue Overview"
+
+    # Page description
+    widget_markdown {
+      title  = "Page description"
+      column = 1
+      row    = 1
+      width  = 3
+      height = 3
+
+      text = "## RabbitMQ Monitoring\n\n"
+    }
+
+    # Bindings per queue
+    widget_bar {
+      title  = "Bindings per queue"
+      column = 4
+      row    = 1
+      width  = 3
+      height = 3
+
+      filter_current_dashboard = true
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT latest(rabbitmq.queue.bindings) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name"
+      }
+    }
+
+    # Consumers per queue
+    widget_line {
+      title  = "Consumers per queue"
+      column = 7
+      row    = 1
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT latest(rabbitmq.queue.consumers) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+
+    # Memory used per queue
+    widget_line {
+      title  = "Memory used per queue"
+      column = 1
+      row    = 4
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(rabbitmq.queue.erlangBytesConsumedInBytes) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+
+    # Active consumers per queue
+    widget_line {
+      title  = "Active consumers per queue"
+      column = 7
+      row    = 4
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT latest(rabbitmq.queue.consumerMessageUtilizationPerSecond) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+
+    # Messages published
+    widget_line {
+      title  = "Messages published"
+      column = 1
+      row    = 7
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(rabbitmq.queue.messagesPublished) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+
+    # Messages acknowledged
+    widget_line {
+      title  = "Messages acknowledged"
+      column = 7
+      row    = 7
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(rabbitmq.queue.messagesAcknowledged) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+
+    # Messages total
+    widget_line {
+      title  = "Messages total"
+      column = 1
+      row    = 10
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(rabbitmq.queue.totalMessages) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+
+    # Messages ready to be delivered
+    widget_area {
+      title  = "Messages ready to be delivered"
+      column = 7
+      row    = 10
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT average(rabbitmq.queue.messagesReadyDeliveryClients), average(rabbitmq.queue.messagesReadyUnacknowledged) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+  }
 
   variable {
     title                = "RabbitMQ Names"
