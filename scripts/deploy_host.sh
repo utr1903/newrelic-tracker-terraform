@@ -11,10 +11,6 @@ while (( "$#" )); do
       flagDryRun="true"
       shift
       ;;
-    --host)
-      host="$2"
-      shift
-      ;;
     *)
       shift
       ;;
@@ -46,12 +42,6 @@ if [[ $NEWRELIC_API_KEY == "" ]]; then
   exit 1
 fi
 
-# Host name
-if [[ $host == "" ]]; then
-  echo "Define host name with the flag [--host]. For example -> <mydopehostprod>"
-  exit 1
-fi
-
 #################
 ### TERRAFORM ###
 #################
@@ -63,14 +53,13 @@ if [[ $flagDestroy != "true" ]]; then
     -backend-config="resource_group_name=rgtrackereuwterraform" \
     -backend-config="storage_account_name=sttrackereuwterraform" \
     -backend-config="container_name=tfstates" \
-    -backend-config="key=${NEWRELIC_ACCOUNT_ID}-host-${host}-local"
+    -backend-config="key=${NEWRELIC_ACCOUNT_ID}-host-local"
 
   # Plan Terraform
   terraform -chdir=../terraform/host plan \
     -var NEW_RELIC_ACCOUNT_ID=$NEWRELIC_ACCOUNT_ID \
     -var NEW_RELIC_API_KEY=$NEWRELIC_API_KEY \
     -var NEW_RELIC_REGION=$NEWRELIC_REGION \
-    -var host_name=$host \
     -out "./tfplan"
 
   # Apply Terraform
@@ -83,7 +72,6 @@ else
   terraform -chdir=../terraform/host destroy \
     -var NEW_RELIC_ACCOUNT_ID=$NEWRELIC_ACCOUNT_ID \
     -var NEW_RELIC_API_KEY=$NEWRELIC_API_KEY \
-    -var NEW_RELIC_REGION=$NEWRELIC_REGION \
-    -var host_name=$host
+    -var NEW_RELIC_REGION=$NEWRELIC_REGION
 fi
 #########
