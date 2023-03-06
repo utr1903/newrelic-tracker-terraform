@@ -204,16 +204,18 @@ resource "newrelic_one_dashboard" "rabbitmq" {
     }
 
     # Nodes
-    widget_billboard {
+    widget_table {
       title  = "Nodes"
       column = 4
       row    = 1
       width  = 3
       height = 3
 
+      filter_current_dashboard = true
+
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT uniqueCount(entity.name) as 'Total', filter(uniqueCount(entity.name), where rabbitmq.node.running[latest] > 0) as 'Running', filter(uniqueCount(entity.name), where rabbitmq.node.hostMemoryAlarm[latest] > 0) as 'Memory Alarms', filter(uniqueCount(entity.name), where rabbitmq.node.diskAlarm[latest] > 0) as 'Disk Alarms' WHERE metricName = 'rabbitmq.node.running' AND host.hostname IN ({{rabbitmqnames}})"
+        query      = "FROM Metric SELECT uniqueCount(entity.name) as 'Total', filter(uniqueCount(entity.name), where rabbitmq.node.running[latest] > 0) as 'Running', filter(uniqueCount(entity.name), where rabbitmq.node.hostMemoryAlarm[latest] > 0) as 'Memory Alarms', filter(uniqueCount(entity.name), where rabbitmq.node.diskAlarm[latest] > 0) as 'Disk Alarms' WHERE metricName = 'rabbitmq.node.running' AND host.hostname IN ({{rabbitmqnames}}) FACET entity.name"
       }
     }
 
@@ -284,23 +286,25 @@ resource "newrelic_one_dashboard" "rabbitmq" {
       text = "## RabbitMQ Monitoring\n\n"
     }
 
-    # Total bindings
-    widget_billboard {
-      title  = "Total bindings"
+    # Bindings per exchange
+    widget_table {
+      title  = "Bindings per exchange"
       column = 4
       row    = 1
       width  = 3
       height = 3
 
+      filter_current_dashboard = true
+
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
-        query      = "FROM Metric SELECT count(rabbitmq.exchange.bindings) TIMESERIES"
+        query      = "FROM Metric SELECT count(rabbitmq.exchange.bindings) FACET entity.name TIMESERIES"
       }
     }
 
-    # Exchanges
+    # Bindings per exchange
     widget_line {
-      title  = "Exchanges"
+      title  = "Bindings per exchange"
       column = 7
       row    = 1
       width  = 6
@@ -384,7 +388,7 @@ resource "newrelic_one_dashboard" "rabbitmq" {
     }
 
     # Bindings per queue
-    widget_bar {
+    widget_table {
       title  = "Bindings per queue"
       column = 4
       row    = 1
