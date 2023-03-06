@@ -7,7 +7,7 @@ resource "newrelic_one_dashboard" "rabbitmq" {
   name = "Ugur - RabbitMQ Overview"
 
   page {
-    name = "Overview"
+    name = "Host Overview"
 
     # Page description
     widget_markdown {
@@ -87,6 +87,104 @@ resource "newrelic_one_dashboard" "rabbitmq" {
       nrql_query {
         account_id = var.NEW_RELIC_ACCOUNT_ID
         query      = "FROM Metric SELECT max(host.diskUtilizationPercent) AS `max`, average(host.diskUtilizationPercent) AS `avg` FACET host.hostname WHERE host.hostname IN ({{rabbitmqnames}})"
+      }
+    }
+
+    # Connections total
+    widget_billboard {
+      title  = "Connections total"
+      column = 1
+      row    = 7
+      width  = 2
+      height = 2
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT latest(rabbitmq.vhost.connectionsTotal) WHERE host.hostname IN ({{rabbitmqnames}}) FACET host.hostname TIMESERIES"
+      }
+    }
+    
+    # Connections running
+    widget_billboard {
+      title  = "Connections running"
+      column = 3
+      row    = 7
+      width  = 2
+      height = 2
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT latest(rabbitmq.vhost.connectionsRunning) WHERE host.hostname IN ({{rabbitmqnames}}) FACET host.hostname TIMESERIES"
+      }
+    }
+
+    # Connections closed
+    widget_billboard {
+      title  = "Connections closed"
+      column = 5
+      row    = 7
+      width  = 2
+      height = 2
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT latest(rabbitmq.vhost.connectionsClosed) WHERE host.hostname IN ({{rabbitmqnames}}) FACET host.hostname TIMESERIES"
+      }
+    }
+
+    # Connections closing
+    widget_billboard {
+      title  = "Connections closing"
+      column = 7
+      row    = 7
+      width  = 2
+      height = 2
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT latest(rabbitmq.vhost.connectionsClosing) WHERE host.hostname IN ({{rabbitmqnames}}) FACET host.hostname TIMESERIES"
+      }
+    }
+
+    # Connections blocked
+    widget_billboard {
+      title  = "Connections blocked"
+      column = 9
+      row    = 7
+      width  = 2
+      height = 2
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT latest(rabbitmq.vhost.connectionsBlocked) WHERE host.hostname IN ({{rabbitmqnames}}) FACET host.hostname TIMESERIES"
+      }
+    }
+
+    # Connections blocking
+    widget_billboard {
+      title  = "Connections blocking"
+      column = 11
+      row    = 7
+      width  = 2
+      height = 2
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT latest(rabbitmq.vhost.connectionsBlocking) WHERE host.hostname IN ({{rabbitmqnames}}) FACET host.hostname TIMESERIES"
+      }
+    }
+
+    # Connections blocking
+    widget_line {
+      title  = "Connections blocking"
+      column = 1
+      row    = 9
+      width  = 12
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT latest(rabbitmq.vhost.connectionsTotal), latest(rabbitmq.vhost.connectionsRunning), latest(rabbitmq.vhost.connectionsClosed), latest(rabbitmq.vhost.connectionsClosing), latest(rabbitmq.vhost.connectionsBlocked), latest(rabbitmq.vhost.connectionsBlocking) WHERE host.hostname IN ({{rabbitmqnames}}) FACET host.hostname TIMESERIES"
       }
     }
   }
