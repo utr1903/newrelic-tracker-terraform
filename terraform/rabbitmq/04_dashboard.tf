@@ -270,6 +270,106 @@ resource "newrelic_one_dashboard" "rabbitmq" {
     }
   }
 
+  page {
+    name = "Exchange Overview"
+
+    # Page description
+    widget_markdown {
+      title  = "Page description"
+      column = 1
+      row    = 1
+      width  = 3
+      height = 3
+
+      text = "## RabbitMQ Monitoring\n\n"
+    }
+
+    # Total bindings
+    widget_billboard {
+      title  = "Total bindings"
+      column = 4
+      row    = 1
+      width  = 3
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT count(rabbitmq.exchange.bindings) TIMESERIES"
+      }
+    }
+
+    # Exchanges
+    widget_line {
+      title  = "Exchanges"
+      column = 7
+      row    = 1
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT count(rabbitmq.exchange.bindings) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+
+    # Messages published per channel
+    widget_line {
+      title  = "Messages published per channel"
+      column = 1
+      row    = 4
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT uniqueCount(rabbitmq.exchange.messagesPublishedPerChannel) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+
+    # Rate of messages published per channel (1/s)
+    widget_line {
+      title  = "Rate of messages published per channel (1/s)"
+      column = 7
+      row    = 4
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT uniqueCount(rabbitmq.exchange.messagesPublishedPerChannelPerSecond) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+
+    # Messages published from exchange to queue
+    widget_line {
+      title  = "Messages published from exchange to queue"
+      column = 1
+      row    = 7
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT uniqueCount(rabbitmq.exchange.messagesPublishedQueue) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+
+    # Rate of messages published from exchange to queue (1/s)
+    widget_line {
+      title  = "Rate of messages published from exchange to queue (1/s)"
+      column = 7
+      row    = 7
+      width  = 6
+      height = 3
+
+      nrql_query {
+        account_id = var.NEW_RELIC_ACCOUNT_ID
+        query      = "FROM Metric SELECT uniqueCount(rabbitmq.exchange.messagesPublishedQueuePerSecond) WHERE host.hostname IN ({{rabbitmqnames}}) FACET entity.name TIMESERIES"
+      }
+    }
+  }
+
+
   variable {
     title                = "RabbitMQ Names"
     name                 = "rabbitmqnames"
